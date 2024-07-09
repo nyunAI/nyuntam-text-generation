@@ -8,6 +8,7 @@ from typing import Optional
 from math import floor
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,11 +18,13 @@ ALLOWED_EXTENSIONS = {".pt", ".bin"}
 # =========== Exceptions ===========
 class CustomModelLoadError(RuntimeError):
     """Exception for custom model loading errors."""
+
     pass
 
 
 class NamedModelLoadError(RuntimeError):
     """Exception for named model loading errors."""
+
     pass
 
 
@@ -256,7 +259,7 @@ class LanguageModel:
         """Patch Phi3 model to Llama model and save it to the given directory."""
         # TODO add the patch_modules function to the main codebase
         raise NotImplementedError("Patch modules function not implemented yet.")
-    
+
         import json
 
         patch_modules(model, PHI3_PATCH_TYPES)
