@@ -1,2 +1,3 @@
 ## quantisation/autoawq
 -r quantisation/autoawq/requirements.txt
+strenum # if python < 3.11
