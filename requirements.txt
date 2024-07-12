@@ -6,3 +6,4 @@
 
 ## misc
 strenum # if python < 3.11
+flash_attn

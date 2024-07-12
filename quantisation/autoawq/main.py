@@ -107,22 +107,12 @@ class _AutoAWQ:
         )
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model_path)
 
-        pre_quantized_size = sum(
-            p.numel() for p in self.model.parameters() if p.requires_grad
-        )
         logger.info("Quantizing model...")
         self.model.quantize(
             self.tokenizer,
             quant_config=self.config.to_dict(),
             calib_data=self.config.calib_data,
         )
-        post_quantized_size = sum(
-            p.numel() for p in self.model.parameters() if p.requires_grad
-        )
-        logger.info(
-            f"# Pre-quantization params: {pre_quantized_size} | # Post-quantization params: {post_quantized_size} | Compression rate: {(post_quantized_size / pre_quantized_size) * 100:.2f}%"
-        )
-
         self.model.save_quantized(
             str(self.config.output_path), shard_size="60GB"
         )  # shard size is higher to save a single model.safetensor file to be able to directly use in mlcllm
