@@ -1,0 +1,3 @@
+[submodule "engines/tensorrt_llm/TensorRT-LLM"]
+	path = engines/tensorrt_llm/TensorRT-LLM
+	url = https://github.com/nyunAI/TensorRT-LLM.git

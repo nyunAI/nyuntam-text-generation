@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 KOMPRESS_ENVIRON_DATASET_JSON_PATH = "KOMPRESS_ENVIRON_DATASET_JSON_PATH"
 
 # path to trtllm inside docker
-TENSORRTLLM = Path("/app/tensorrt_llm")
+THIS = Path(__file__)
+TENSORRTLLM = THIS.parent / "TensorRT-LLM"
 SCRIPTS = TENSORRTLLM / "examples"
 
 
