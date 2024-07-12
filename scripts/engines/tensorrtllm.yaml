@@ -1,16 +1,16 @@
 ALGORITHM: TensorRTLLM
 ALGO_TYPE: llm
 MODEL: "meta-llama/Llama-2-7b-hf"
-CACHE_PATH: "user_data/.cache"
+CACHE_PATH: "/user_data/.cache"
 JOB_ID: 47
-JOB_PATH: "user_data/jobs/47"
+JOB_PATH: "/user_data/jobs/47"
 JOB_SERVICE: "Kompress"
-LOGGING_PATH: "user_data/logs/47"
+LOGGING_PATH: "/user_data/logs/47"
 CUSTOM_MODEL_PATH:
-MODEL_PATH: "user_data/jobs/47"
+MODEL_PATH: "/user_data/jobs/47"
 TASK: llm
-OUTPUT_PATH: "user_data/models"
-USER_FOLDER: "user_data"
+OUTPUT_PATH: "/user_data/models"
+USER_FOLDER: "/user_data"
 PLATFORM: huggingface
 
 DATA_URL: ""

@@ -1,3 +1,8 @@
+## engines/tensorrt_llm
+# -r engines/tensorrt_llm/requirements.txt
+
 ## quantisation/autoawq
 -r quantisation/autoawq/requirements.txt
+
+## misc
 strenum # if python < 3.11
