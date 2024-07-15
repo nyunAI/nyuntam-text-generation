@@ -10,7 +10,9 @@ transformers
 ## nyuntam_adapt
 # -r nyuntam_adapt/requirements.txt
 bitsandbytes
+evaluate
 ninja
+nltk
 optimum
 peft
 Pillow

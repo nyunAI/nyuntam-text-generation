@@ -1,15 +1,15 @@
 ALGORITHM: "FlapPruner"
 ALGO_TYPE: "llm"
 MODEL: "meta-llama/Llama-2-7b-hf"
-CACHE_PATH: "user_data/.cache"
+CACHE_PATH: "/user_data/.cache"
 JOB_ID: 1
-JOB_PATH: "user_data/jobs/1"
+JOB_PATH: "/user_data/jobs/1"
 JOB_SERVICE: "Kompress"
-LOGGING_PATH: "user_data/logs/1/"
+LOGGING_PATH: "/user_data/logs/1/"
 MODEL_PATH: ""
 TASK: "llm"
-OUTPUT_PATH: "user_data/models"
-USER_FOLDER: "user_data"
+OUTPUT_PATH: "/user_data/models"
+USER_FOLDER: "/user_data"
 PLATFORM: "huggingface"
 
 DATA_URL: ""
@@ -42,8 +42,8 @@ llm:
     DO_EVAL: False
     NUM_WORKERS: 4
     BATCH_SIZE: 4
-    EPOCHS: 1
-    STEPS: 10
+    EPOCHS: 0.001
+    STEPS: 1
     OPTIMIZER: "paged_adamw_32bit"
     LR: 0.0002
     SCHEDULER_TYPE: "constant"
