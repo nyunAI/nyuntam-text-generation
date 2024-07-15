@@ -1,0 +1,8 @@
+packaging
+accelerate
+datasets
+flash_attn
+sentencepiece
+torch
+transformers
+# wandb ## optional
