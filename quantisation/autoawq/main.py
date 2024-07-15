@@ -1,8 +1,8 @@
-from core.job import LMJob
+from text_generation.core.job import LMJob
 
 # nyuntam
-from utils.device import CudaDeviceEnviron
-from algorithm import Algorithm
+from nyuntam.utils.device import CudaDeviceEnviron
+from nyuntam.algorithm import Algorithm
 
 from typing import List, Dict
 from awq import AutoAWQForCausalLM

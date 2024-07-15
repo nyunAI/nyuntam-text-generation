@@ -1,8 +1,8 @@
-from core.model import LanguageModel
-from core.dataset import Dataset
+from text_generation.core.model import LanguageModel
+from text_generation.core.dataset import Dataset
 
 # nyuntam
-from utils.device import CudaDeviceEnviron
+from nyuntam.utils.device import CudaDeviceEnviron
 
 from dataclasses import dataclass, field, fields
 from pathlib import Path

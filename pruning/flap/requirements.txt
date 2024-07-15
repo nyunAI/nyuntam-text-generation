@@ -6,3 +6,13 @@ sentencepiece
 torch
 transformers
 # wandb ## optional
+
+## nyuntam_adapt
+# -r nyuntam_adapt/requirements.txt
+bitsandbytes
+ninja
+optimum
+peft
+Pillow
+timm
+trl

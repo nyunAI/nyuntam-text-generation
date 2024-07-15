@@ -1,5 +1,5 @@
 # nyuntam
-from algorithm import Algorithm
+from nyuntam.algorithm import Algorithm
 
 # ===================================
 #           quantization
@@ -41,7 +41,7 @@ def __getattr__(name: str) -> Algorithm:
         return _import_AutoAWQ()
 
     # pruning
-    elif name == "Flap":
+    elif name == "FlapPruner":
         return _import_Flap()
 
     # engine

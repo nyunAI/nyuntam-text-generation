@@ -121,7 +121,7 @@ class Pruner:
         )
 
         try:
-            torch.save(self.model, self.output_dir / "model.pt")
+            torch.save(self.model, self.output_dir / "wds.pt")
         except Exception as e:
             # TODO: fix torch.save when pruning on multiple GPUs
             self.model.save_pretrained(self.output_dir)

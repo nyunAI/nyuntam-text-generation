@@ -1,7 +1,7 @@
-from core.job import LMJob
+from text_generation.core.job import LMJob
 
 # nyuntam
-from algorithm import Algorithm
+from nyuntam.algorithm import Algorithm
 
 import gc
 import os

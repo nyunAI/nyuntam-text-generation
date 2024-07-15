@@ -1,14 +1,14 @@
-from . import __getattr__ as get_algorithm
-from core.model import LanguageModel
-from core.job import LMJob, UserDir
-from core.dataset import Dataset
+from text_generation import __getattr__ as get_algorithm
+from text_generation.core.model import LanguageModel
+from text_generation.core.job import LMJob, UserDir
+from text_generation.core.dataset import Dataset
 
 # nyuntam
-from factory import Factory as BaseFactory, FactoryTypes
-from constants.keys import FactoryArgumentKeys
-from utils.device import CudaDeviceEnviron
-from utils.dtype import get_dtype_from_string
-from algorithm import Algorithm
+from nyuntam.factory import Factory as BaseFactory, FactoryTypes
+from nyuntam.constants.keys import FactoryArgumentKeys
+from nyuntam.utils.device import CudaDeviceEnviron
+from nyuntam.utils.dtype import get_dtype_from_string
+from nyuntam.algorithm import Algorithm
 
 
 from pathlib import Path

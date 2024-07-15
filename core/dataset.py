@@ -194,7 +194,6 @@ class Dataset:
 
     def get_flap_dataloader(self, nsamples=128, seed=0, seqlen=2048, tokenizer=None):
 
-        from lib.data import TokenizerWrapper
         import random
 
         ds = load_from_disk(self.dataset_name_or_path)
