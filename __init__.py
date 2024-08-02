@@ -12,6 +12,12 @@ def _import_AutoAWQ() -> Algorithm:
     return AutoAWQ
 
 
+def _import_LMQuant() -> Algorithm:
+    from .quantisation.mit_han_lab_lmquant import LMQuant
+
+    return LMQuant
+
+
 # ===================================
 #               pruning
 # ===================================
@@ -39,6 +45,9 @@ def __getattr__(name: str) -> Algorithm:
     # quantization
     if name == "AutoAWQ":
         return _import_AutoAWQ()
+
+    elif name == "LMQuant":
+        return _import_LMQuant()
 
     # pruning
     elif name == "FlapPruner":

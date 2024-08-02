@@ -1,0 +1,4 @@
+torch==2.3.0
+packaging
+-r ../../engines/qserve/requirements.txt
+git+https://github.com/nyunAI/lmquant
