@@ -10,10 +10,6 @@ from nyuntam.algorithm import Algorithm
 from nyuntam.utils._backports import StrEnum
 
 
-# lmquant
-from lmquant.quant.data.dtype import QuantDataType
-
-
 import yaml
 from pathlib import Path
 import logging
@@ -24,21 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 CONFIG_ROOT = Path(__file__).parent / "configs"
-
-
-def update_dict_dtype_to_quant_data_type(d: Dict) -> Dict:
-    """Update the dictionary to have the correct QuantDataType for the values that are strings."""
-    for k, v in d.items():
-        if "dtype" in k:
-            if isinstance(v, str):
-                print(f"Converting key: {k}'s, value: {v} to QuantDataType.")
-                d[k] = QuantDataType.from_str(v)
-            elif isinstance(v, List):
-                print(f"Converting key: {k}'s, value: {v} to QuantDataType.")
-                d[k] = [QuantDataType.from_str(vv) for vv in v]
-        if isinstance(v, Dict):
-            d[k] = update_dict_dtype_to_quant_data_type(v)
-    return d
 
 
 def get_cleaned_name(name: str) -> str:
@@ -94,7 +75,7 @@ class QuantConfigHandler:
             return yaml.safe_load(f)
 
 
-class LMQuant:
+class LMQuant(Algorithm):
 
     cleanup_paths: Set[Path] = set()
 

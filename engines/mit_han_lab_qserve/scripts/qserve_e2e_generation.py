@@ -13,7 +13,13 @@ import datasets
 
 import qserve.utils.constants
 from qserve import EngineArgs, LLMEngine, SamplingParams
-from qserve.conversation import Conversation, SeparatorStyle, get_conv_template_name, get_conv_template, register_conv_template
+from qserve.conversation import (
+    Conversation,
+    SeparatorStyle,
+    get_conv_template_name,
+    get_conv_template,
+    register_conv_template,
+)
 
 max_seq_len = qserve.utils.constants.max_seq_len
 BG_BLUE = "\033[44m"

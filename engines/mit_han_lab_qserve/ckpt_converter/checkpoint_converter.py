@@ -1,13 +1,18 @@
 import os
 import torch
 import argparse
-from qserve.modeling.layers.quantized_linear import W4A8OF16LinearDynamicInputScale, W8A8OF16LinearDynamicInputScale
+from qserve.modeling.layers.quantized_linear import (
+    W4A8OF16LinearDynamicInputScale,
+    W8A8OF16LinearDynamicInputScale,
+)
 from quant_utils import get_blocks, get_named_linears, scale_activations, set_op_by_name
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, modeling_utils
 from tqdm import tqdm
 
+
 def skip(*args, **kwargs):
     pass
+
 
 torch.nn.init.kaiming_uniform_ = skip
 torch.nn.init.kaiming_normal_ = skip
@@ -62,7 +67,7 @@ if __name__ == "__main__":
     ], "We only support llama architecture for now."
 
     config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
-    
+
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path, use_fast=False, trust_remote_code=True
     )
@@ -70,13 +75,17 @@ if __name__ == "__main__":
     modeling_utils._init_weights = False
     model = AutoModelForCausalLM.from_config(config)
 
-    fake_quant_ckpt = torch.load(args.quant_path+'/model.pt', map_location=args.device)
-    quant_params = torch.load(args.quant_path+'/scale.pt', map_location=args.device)
+    fake_quant_ckpt = torch.load(
+        args.quant_path + "/model.pt", map_location=args.device
+    )
+    quant_params = torch.load(args.quant_path + "/scale.pt", map_location=args.device)
 
     w_bit = args.w_bit
     q_config = {"zero_point": True, "q_group_size": args.group_size}
     if w_bit == 8:
-        assert args.group_size == -1, "Group size should be -1 (per-channel) for W8 quantization"
+        assert (
+            args.group_size == -1
+        ), "Group size should be -1 (per-channel) for W8 quantization"
 
     layers = get_blocks(model)
     for i in tqdm(
@@ -90,10 +99,14 @@ if __name__ == "__main__":
             layer_weight_name = f"model.layers.{i}.{name}"
             s1_scale = quant_params[f"{layer_weight_name}.weight.scale.0"]
             if q_config["q_group_size"] != -1:
-                assert f"{layer_weight_name}.weight.scale.1" in quant_params.keys(), f"{layer_weight_name}.weight.scale.1 not found in quant_params. Please check if you are using per-group quantization."
+                assert (
+                    f"{layer_weight_name}.weight.scale.1" in quant_params.keys()
+                ), f"{layer_weight_name}.weight.scale.1 not found in quant_params. Please check if you are using per-group quantization."
                 s2_scale = quant_params[f"{layer_weight_name}.weight.scale.1"]
             else:
-                assert f"{layer_weight_name}.weight.scale.1" not in quant_params.keys(), f"{layer_weight_name}.weight.scale.1 found in quant_params. Please check if you are using per-channel quantization."
+                assert (
+                    f"{layer_weight_name}.weight.scale.1" not in quant_params.keys()
+                ), f"{layer_weight_name}.weight.scale.1 found in quant_params. Please check if you are using per-channel quantization."
                 s2_scale = None
             zeros = quant_params[f"{layer_weight_name}.weight.zero"].to(torch.int8)
             if zeros.min() < 0:
@@ -101,9 +114,15 @@ if __name__ == "__main__":
             module.weight.data = fake_quant_ckpt[f"{layer_weight_name}.weight"]
             module = module.cpu()
 
-            if w_bit == 4:    
+            if w_bit == 4:
                 q_linear = W4A8OF16LinearDynamicInputScale.from_linear(
-                    module, w_bit, q_config["q_group_size"], init_only=False, s1_scale=s1_scale, s2_scale=s2_scale, zeros=zeros
+                    module,
+                    w_bit,
+                    q_config["q_group_size"],
+                    init_only=False,
+                    s1_scale=s1_scale,
+                    s2_scale=s2_scale,
+                    zeros=zeros,
                 )
             else:
                 q_linear = W8A8OF16LinearDynamicInputScale.from_linear(
@@ -111,7 +130,7 @@ if __name__ == "__main__":
                 )
             # q_linear.to(next(layer.parameters()).device)
             set_op_by_name(layer, name, q_linear)
-    
+
     # Sync layers other than gemm layers
     for key, param in model.named_parameters():
         if "_proj" in key:
@@ -123,10 +142,15 @@ if __name__ == "__main__":
 
     # Organize checkpoint and config files
     model_name = args.model_path.rstrip("/").split("/")[-1]
-    model_name = model_name + f"-w{args.w_bit}a8-per-channel" if args.group_size == -1 else model_name + f"-w{args.w_bit}a8-g{args.group_size}"
+    model_name = (
+        model_name + f"-w{args.w_bit}a8-per-channel"
+        if args.group_size == -1
+        else model_name + f"-w{args.w_bit}a8-g{args.group_size}"
+    )
     os.system(f"mkdir -p {args.output_path}/{model_name}")
-    os.system(f"mv {args.output_path}/quant_model.pt {args.output_path}/{model_name}/pytorch_model.bin")
+    os.system(
+        f"mv {args.output_path}/quant_model.pt {args.output_path}/{model_name}/pytorch_model.bin"
+    )
     os.system(f"scp {args.model_path}/*.json {args.output_path}/{model_name}")
     os.system(f"scp {args.model_path}/tokenizer.model {args.output_path}/{model_name}")
     os.system(f"rm -f {args.output_path}/{model_name}/pytorch_model.bin.index.json")
-

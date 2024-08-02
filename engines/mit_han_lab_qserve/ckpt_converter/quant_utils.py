@@ -6,6 +6,7 @@ from tqdm import tqdm
 EMBEDDING_KEYWORDS = ["embed"]
 LM_HEAD_KEYWORDS = ["lm_head", "embed_out", "output"]
 
+
 def get_named_linears(module):
     return {name: m for name, m in module.named_modules() if isinstance(m, nn.Linear)}
 
@@ -53,6 +54,7 @@ class ScaledActivation(nn.Module):
 
     def forward(self, x):
         return self.act(x) / self.scales.view(1, 1, -1).to(x.device)
+
 
 def scale_activations(module):
     param = next(module.parameters())

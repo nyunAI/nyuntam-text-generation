@@ -1,4 +1,3 @@
-
 # nyuntam
 from nyuntam.algorithm import Algorithm
 
@@ -8,6 +7,7 @@ from pathlib import Path
 from typing import Union, Optional
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # script paths
@@ -58,12 +58,12 @@ class QServe(Algorithm):
         if not isinstance(quant_path, Path):
             quant_path = Path(quant_path) if quant_path else None
 
-        assert (
-            model_path and model_path.exists()
-        ), f"model not found at {model_path}"
+        assert model_path and model_path.exists(), f"model not found at {model_path}"
 
         if quant_path:
-            assert quant_path.exists(), f"quant path not found at {quant_path}"
+            assert (
+                quant_path.exists()
+            ), f"quantized model checkpoint not found at {quant_path}"
             assert quant_path / "model.pt", f"model.pt not found at {quant_path}"
             assert quant_path / "scale.pt", f"scale.pt not found at {quant_path}"
 
@@ -83,7 +83,6 @@ class QServe(Algorithm):
             "--device",
             device,
         ]
-        print(f"running: python {CONVERTER} {' '.join(command)}")
         exit_code = os.system(f"python {CONVERTER} {' '.join(command)}")
         assert (
             exit_code == 0
