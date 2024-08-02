@@ -3,7 +3,7 @@ from text_generation.utils import (
     build_nested_dict,
     deep_update,
 )
-from text_generation.engines.qserve import QServe
+from text_generation.engines.mit_han_lab_qserve import QServe
 
 # nyuntam
 from nyuntam.algorithm import Algorithm
@@ -130,6 +130,7 @@ class LMQuant:
 
         self.job = job
         self.keep_scales = kwargs.pop("keep_scales", False)
+        self.loads_with_qserve = kwargs.pop("loads_with_qserve", False)
 
         quant_type: QuantConfigHandler.Config = QuantConfigHandler.Config.create(
             kwargs.pop("quant_type", QuantConfigHandler.Config.LLM)
@@ -207,12 +208,13 @@ class LMQuant:
         # 1. generate fake quants
         self.quantize()
 
-        # 2. use qserve to convert the checkpoints
-        self.convert_checkpoint()
+        if self.loads_with_qserve:
+            # 2. use qserve to convert the checkpoints
+            self.convert_checkpoint()
 
-        # 3. generate run script (uses qserve)
-        self.generate_run_script()
+            # 3. generate run script (uses qserve)
+            self.generate_run_script()
 
-        # 4. cleanup unwanted files (quant configs, scales, intermediary logs, etc.)
+        # cleanup unwanted files (quant configs, scales, intermediary logs, etc.)
         LMQuant.cleanup()
         return __name__, None

@@ -26,7 +26,8 @@ llm:
   LMQuant:
     # Quantization parameters
     save_model: True
-    keep_scales: False
+    keep_scales: True
+    loads_with_qserve: False
     dtype: float32
 
     quant_type: "g128" ## one of ['llm', 'gchn', 'g128', 'sq_dynamic', 'sq_static', 'awq', 'gptq']
