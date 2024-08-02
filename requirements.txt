@@ -1,8 +1,8 @@
-## quantisation/autoawq
-# -r quantisation/autoawq/requirements.txt
+## quantization/autoawq
+# -r quantization/autoawq/requirements.txt
 
-## quantisation/lmquant
--r quantisation/mit_han_lab_lmquant/requirements.txt
+## quantization/lmquant
+-r quantization/mit_han_lab_lmquant/requirements.txt
 
 ## pruning/flap
 # -r pruning/flap/requirements.txt

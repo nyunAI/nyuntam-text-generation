@@ -7,13 +7,13 @@ from nyuntam.algorithm import Algorithm
 
 
 def _import_AutoAWQ() -> Algorithm:
-    from .quantisation.autoawq import AutoAWQ
+    from .quantization.autoawq import AutoAWQ
 
     return AutoAWQ
 
 
 def _import_LMQuant() -> Algorithm:
-    from .quantisation.mit_han_lab_lmquant import LMQuant
+    from .quantization.mit_han_lab_lmquant import LMQuant
 
     return LMQuant
 
