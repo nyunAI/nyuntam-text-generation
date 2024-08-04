@@ -10,7 +10,7 @@
 [submodule "engines/mit_han_lab_qserve/QServe"]
 	path = engines/mit_han_lab_qserve/QServe
 	url = https://github.com/nyunAI/qserve.git
-[submodule "quantisation/aqlm/AQLM"]
-	path = quantisation/aqlm/AQLM
+[submodule "quantization/aqlm/AQLM"]
+	path = quantization/aqlm/AQLM
 	url = https://github.com/nyunAI/AQLM.git
 	branch = pv-tuning
