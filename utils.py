@@ -1,3 +1,4 @@
+from dataclasses import dataclass, is_dataclass, fields, MISSING
 from typing import Dict, Any
 import logging
 
@@ -55,6 +56,43 @@ def deep_update(
             else:
                 updated_mapping[k] = v
     return updated_mapping
+
+
+def create_instance(data_class: dataclass, flat_dict: Dict[str, Any]):
+    instance_args = {}
+    for field in fields(data_class):
+        field_name = field.name
+        field_type = field.type
+        field_value = flat_dict.get(field_name, MISSING)
+
+        if is_dataclass(field_type):
+            instance_args[field_name] = create_instance(field_type, flat_dict)
+        else:
+            if field_value is None or field_value == "" or field_value == MISSING:
+                instance_args[field_name] = field.default
+            else:
+                instance_args[field_name] = field_value
+
+    dc = data_class(**instance_args)
+    return dc
+
+
+# endregion
+
+
+# region logging utilities
+def log_dict(d: Dict, prefix: str = ""):
+    """Logs a dictionary.
+
+    Args:
+        d (Dict): The dictionary to log.
+        prefix (str, optional): The prefix to add to the log. Defaults to "".
+    """
+    for k, v in d.items():
+        if isinstance(v, dict):
+            log_dict(v, prefix=f"{prefix}{k}.")
+        else:
+            logger.info(f"{prefix}{k}: {v}")
 
 
 # endregion

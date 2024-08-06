@@ -217,3 +217,59 @@ class Dataset:
 
         # TODO: add logic to support testloader when eval is enabled (ref - FLAP.lib.data.get_loaders)
         return trainloader
+
+    def load_split(self, split=None):
+        if not split:
+            split = self.split
+        return load_from_disk(self.dataset_name_or_path)[split]
+
+    def tokenize_aqlm(
+        self, aqlm_config, tokenized_ds_path: Union[str, Path]
+    ) -> Union[str, Path]:
+        from copy import deepcopy
+        from text_generation.quantization.aqlm import AQLMConfig, tokenize_dataset
+
+        assert isinstance(
+            aqlm_config, AQLMConfig
+        ), "aqlm_config must be an instance of AQLMConfig"
+
+        config = deepcopy(aqlm_config)
+        config.finetune_config.load_dtype = "bfloat16"
+        config.finetune_config.dataset_name = self
+        config.finetune_config.save_dataset_and_exit = str(tokenized_ds_path)
+        tokenize_dataset(config)
+        del config
+        return tokenized_ds_path
+
+    def get_aqlm_caliberation_dataloader(
+        self, nsamples=128, seqlen=2048, tokenizer=None
+    ):
+        import random
+        from tqdm import trange
+
+        assert (
+            tokenizer is not None
+        ), "Tokenizer must be provided for AQLM caliberation dataloader"
+        ds = load_from_disk(self.dataset_name_or_path)
+        traindata = ds[self.split]
+        tokenizer.bos_token_id = 1
+        tokenizer.eos_token_id = 2
+        trainloader = []
+        for _ in trange(
+            nsamples,
+            desc=f"Making {self.dataset_name_or_path} calibration set",
+            leave=False,
+        ):
+            while True:
+                i = random.randint(0, len(traindata) - 1)
+                trainenc = tokenizer(
+                    traindata[i][self.new_text_column], return_tensors="pt"
+                )
+                if trainenc.input_ids.shape[1] > seqlen:
+                    break
+            i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
+            j = i + seqlen
+            inp = trainenc.input_ids[:, i:j]
+            assert inp.shape[1] == seqlen
+            trainloader.append(inp)
+        return trainloader
