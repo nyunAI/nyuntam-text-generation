@@ -1,4 +1,7 @@
 from text_generation.core.job import LMJob
+from text_generation.core.dataset import Dataset
+from text_generation.utils import create_instance, log_dict
+from text_generation.pruning.flap.config import FlapConfig
 
 # nyuntam
 from nyuntam.algorithm import Algorithm
@@ -10,20 +13,20 @@ from FLAP.lib.prune import (
     find_layers,
     prepare_calibration_input,
     compress,
-    cal_remove_neuron,
 )
 
 # nyuntam-adapt
 from nyuntam_adapt.tasks import CausalLLM
-from nyuntam_adapt.tasks.params import AdaptParams, create_instance
+from nyuntam_adapt.tasks.params import AdaptParams
 
 import os
 import gc
 import torch
 import numpy as np
-from tqdm import tqdm
+from tqdm import tqdm, trange
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from dataclasses import dataclass, asdict, fields
+from dataclasses import asdict
+from typing import Union, Optional
 
 import logging
 
@@ -37,32 +40,6 @@ def free(times=2):
     for _ in range(times):
         torch.cuda.empty_cache()
         gc.collect()
-
-
-@dataclass
-class BaseParams:
-    @classmethod
-    def from_dict(cls, d):
-        return cls(**{k: v for k, v in d.items() if k in fields(cls)})
-
-
-@dataclass
-class FlapArgs(BaseParams):
-
-    seed: int = 0
-    nsamples: int = 2048
-    pruning_ratio: float = 0.2
-    remove_heads: int = 8
-    metrics: str = "WIFV"
-    structure: str = "AL-AM"
-    unstr: bool = False
-    """If True, only mask without real pruning. Defaults to False."""
-    eval: bool = False  # not supporting eval
-
-    def __post_init__(self):
-        assert self.metrics in ["IFV", "WIFV", "WIFN", "N/A"]
-        assert self.structure in ["UL-UM", "UL-MM", "AL-MM", "AL-AM", "N/A"]
-        assert self.pruning_ratio >= 0 and self.pruning_ratio <= 1
 
 
 class Pruner:
@@ -84,32 +61,33 @@ class Pruner:
             torch_dtype=dtype,
             low_cpu_mem_usage=True,
             device_map="auto",
+            trust_remote_code=True,
         )
         device = torch.device(f"cuda:{self.device_to_use}")
-        for i in range(32):
+        for i in range(len(self.model.model.layers)):
             self.model.model.layers[i].self_attn.o_proj.bias = torch.nn.Parameter(
-                torch.empty(
-                    self.model.model.layers[i].self_attn.o_proj.out_features,
-                    dtype=dtype,
+                torch.zeros(
+                    self.model.model.layers[i].self_attn.o_proj.weight.shape[0],
                     device=self.model.model.layers[i].self_attn.o_proj.weight.device,
-                )
-            )
-            self.model.model.layers[i].mlp.down_proj.bias = torch.nn.Parameter(
-                torch.empty(
-                    self.model.model.layers[i].mlp.down_proj.out_features,
                     dtype=dtype,
-                    device=self.model.model.layers[i].mlp.down_proj.weight.device,
                 )
-            )
-        torch.nn.init.zeros_(self.model.model.layers[i].self_attn.o_proj.bias)
-        torch.nn.init.zeros_(self.model.model.layers[i].mlp.down_proj.bias)
+            )  # 或 'cuda'
+            self.model.model.layers[i].mlp.down_proj.bias = torch.nn.Parameter(
+                torch.zeros(
+                    self.model.model.layers[i].mlp.down_proj.weight.shape[0],
+                    device=self.model.model.layers[i].mlp.down_proj.weight.device,
+                    dtype=dtype,
+                )
+            )  # 或 'cuda'
+            torch.nn.init.zeros_(self.model.model.layers[i].self_attn.o_proj.bias)
+            torch.nn.init.zeros_(self.model.model.layers[i].mlp.down_proj.bias)
 
         self.model.seqlen = 128
+        self.model.eval()
 
         logger.info("Loading tokenizer...")
         self.tokenizer = AutoTokenizer.from_pretrained(self.job.model.model_path)
 
-        self.model.eval()
         device = self.model.hf_device_map.get("lm_head", self.model.device)
         logger.info("Pruning model...")
         self.prune_flap(
@@ -120,10 +98,18 @@ class Pruner:
             device=device,
         )
 
+        logger.info("*" * 30)
+        logger.info(
+            f"model parameter {sum(p.numel() for p in self.model.parameters()) / 1000 ** 3:.2f}B"
+        )
+        logger.info("*" * 30)
+
         try:
             torch.save(self.model, self.output_dir / "wds.pt")
         except Exception as e:
             # TODO: fix torch.save when pruning on multiple GPUs
+            if (self.output_dir / "wds.pt").exists():
+                (self.output_dir / "wds.pt").unlink()
             self.model.save_pretrained(self.output_dir)
             self.tokenizer.save_pretrained(self.output_dir)
             logger.warn(
@@ -135,7 +121,12 @@ class Pruner:
         del self.tokenizer
 
     def prune_flap(
-        self, args, model, tokenizer, device=torch.device("cuda:0"), dataset=None
+        self,
+        args: FlapConfig,
+        model: Union[torch.nn.Module, AutoModelForCausalLM],
+        tokenizer: AutoTokenizer,
+        device=torch.device("cuda:0"),
+        dataset: Optional[Dataset] = None,
     ):
         # method adapted from FLAP.lib.prune
         use_cache = model.config.use_cache
@@ -148,7 +139,7 @@ class Pruner:
         )
 
         with torch.no_grad():
-            inps, outs, attention_mask, position_ids = prepare_calibration_input(
+            inps, outs, position_ids = prepare_calibration_input(
                 model, dataloader, device
             )
         layers = model.model.layers
@@ -158,18 +149,21 @@ class Pruner:
         attn_mask, mlp_mask = [], []
 
         # Split into sub-problems, separate statistics for each module
-        for i in tqdm(range(len(layers)), desc="Processing layers"):
+        for i in trange(
+            args.start_pruning_layer_idx, len(layers), desc="Processing layers"
+        ):
             layer = layers[i]
             subset = {}
             subset.update({"self_attn.o_proj": find_layers(layer)["self_attn.o_proj"]})
             subset.update({"mlp.down_proj": find_layers(layer)["mlp.down_proj"]})
 
-            if f"model.layers.{i}" in getattr(model, "hf_device_map", {}):
+            if f"model.layers.{i}" in getattr(
+                model, "hf_device_map", {}
+            ):  ## handle the case for llama-30B and llama-65B, when the device map has multiple GPUs;
                 dev = model.hf_device_map[f"model.layers.{i}"]
-                inps, outs, attention_mask, position_ids = (
+                inps, outs, position_ids = (
                     inps.to(dev),
                     outs.to(dev),
-                    attention_mask.to(dev),
                     position_ids.to(dev),
                 )
 
@@ -188,52 +182,20 @@ class Pruner:
                 handles.append(subset[name].register_forward_hook(add_batch(name)))
             for j in range(args.nsamples):
                 with torch.no_grad():
-                    outs[j] = layer(
-                        inps[j].unsqueeze(0),
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                    )[0]
+                    outs[j] = layer(inps[j].unsqueeze(0), position_ids=position_ids)[0]
             for h in handles:
                 h.remove()
 
             for name in subset:
                 if name == "self_attn.o_proj":
                     W_metric = metrics[args.metrics](wrapped_layers, subset, name) ** 2
-                    if args.structure == "UL-UM":
-                        W_metric = W_metric.reshape(-1, 128).sum(dim=1)
-                        thresh = torch.sort(W_metric.cuda())[0][
-                            int(args.pruning_ratio * layer.self_attn.num_heads)
-                        ].cpu()
-                        W_mask = W_metric >= thresh
-                        attn_mask.append(W_mask)
-                    elif args.structure == "UL-MM":
-                        W_metric = W_metric.reshape(-1, 128).sum(dim=1)
-                        thresh = torch.sort(W_metric.cuda())[0][
-                            args.remove_heads // len(layers)
-                        ].cpu()
-                        W_mask = W_metric >= thresh
-                        attn_mask.append(W_mask)
-                    else:
-                        attn_metric_list.append(W_metric.cpu())
+                    attn_metric_list.append(W_metric.cpu())
                     attn_baseline_inp_list.append(
                         wrapped_layers[name].baseline_inp.type(torch.half)
                     )
                 else:
                     W_metric = metrics[args.metrics](wrapped_layers, subset, name)
-                    if args.structure == "UL-UM":
-                        thresh = torch.sort(W_metric.cuda())[0][
-                            int(W_metric.numel() * args.pruning_ratio)
-                        ].cpu()
-                        W_mask = W_metric >= thresh
-                        mlp_mask.append(W_mask)
-                    elif args.structure == "UL-MM":
-                        thresh = torch.sort(W_metric.cuda())[0][
-                            cal_remove_neuron(args, model)
-                        ].cpu()
-                        W_mask = W_metric >= thresh
-                        mlp_mask.append(W_mask)
-                    else:
-                        mlp_metric_list.append(W_metric.cpu())
+                    mlp_metric_list.append(W_metric.cpu())
                     mlp_baseline_inp_list.append(
                         wrapped_layers[name].baseline_inp.type(torch.half)
                     )
@@ -245,47 +207,38 @@ class Pruner:
             )  # Use the original output as input to the next layer
             torch.cuda.empty_cache()
 
-        def standarlization(x):
-            return (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(
-                x, axis=1, keepdim=True
-            )
+        standarlization = lambda x: (
+            x - torch.mean(x, axis=1, keepdim=True)
+        ) / torch.std(x, axis=1, keepdim=True)
 
-        if args.structure in ["AL-MM", "AL-AM"]:
+        if args.structure in ["AL-AM"]:
             attn_metric = torch.stack(attn_metric_list)
             attn_metric = standarlization(attn_metric)
-            attn_metric = attn_metric.reshape(len(layers), -1, 128).mean(dim=2)
+            attn_metric = attn_metric.reshape(
+                len(layers) - args.start_pruning_layer_idx,
+                -1,
+                args.head_dim * args.gqa_groups,
+            ).mean(dim=2)
 
             mlp_metric = torch.stack(mlp_metric_list)
             mlp_metric = standarlization(mlp_metric)
 
-            if args.structure == "AL-MM":
-                sorted_attn = torch.sort(attn_metric.view(-1), descending=True)[0]
-                attn_thres = sorted_attn[-int(args.remove_heads)]
-                attn_mask = attn_metric > attn_thres  # 1 means retain
-
-                sorted_mlp = torch.sort(mlp_metric.view(-1), descending=True)[0]
-                mlp_thres = sorted_mlp[-cal_remove_neuron(args, model)]
-                mlp_mask = mlp_metric > mlp_thres
-            else:
-                prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
-                sorted_prune, indices = torch.sort(prune_metric, descending=True)
-                compression_weight = torch.ones_like(indices)
-                compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-                threshold = sorted_prune[
-                    torch.argmin(
-                        torch.abs(
-                            torch.cumsum(compression_weight, 0)
-                            - torch.sum(compression_weight) * (1 - args.pruning_ratio)
-                        )
+            prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
+            sorted_prune, indices = torch.sort(prune_metric, descending=True)
+            compression_weight = torch.ones_like(indices)
+            compression_weight[indices < attn_metric.numel()] = 512.0 / 3
+            threshold = sorted_prune[
+                torch.argmin(
+                    torch.abs(
+                        torch.cumsum(compression_weight, 0)
+                        - torch.sum(compression_weight) * (1 - args.pruning_ratio)
                     )
-                ]
-                attn_mask = attn_metric > threshold
-                mlp_mask = mlp_metric > threshold
-        else:
-            attn_mask = torch.stack(attn_mask)
-            mlp_mask = torch.stack(mlp_mask)
+                )
+            ]
+            attn_mask = attn_metric > threshold
+            mlp_mask = mlp_metric > threshold
 
-        for idx in range(len(layers)):
+        for idx in range(len(layers) - args.start_pruning_layer_idx):
             if f"model.layers.{i}" in getattr(model, "hf_device_map", {}):
                 compress(
                     model.model.layers[idx],
@@ -294,7 +247,7 @@ class Pruner:
                     attn_baseline_inp_list[idx],
                     None,
                     model.hf_device_map[f"model.layers.{idx}"],
-                    unstr=args.unstr,
+                    args=args,
                 )
             else:
                 compress(
@@ -304,7 +257,7 @@ class Pruner:
                     attn_baseline_inp_list[idx],
                     None,
                     device,
-                    unstr=args.unstr,
+                    args=args,
                 )
 
             if f"model.layers.{i}" in getattr(model, "hf_device_map", {}):
@@ -315,7 +268,6 @@ class Pruner:
                     None,
                     mlp_baseline_inp_list[idx],
                     model.hf_device_map[f"model.layers.{idx}"],
-                    unstr=args.unstr,
                 )
             else:
                 compress(
@@ -325,8 +277,8 @@ class Pruner:
                     None,
                     mlp_baseline_inp_list[idx],
                     device,
-                    unstr=args.unstr,
                 )
+            logger.info(f"[pruned] model.layers.{args.start_pruning_layer_idx + idx}")
 
         model.config.use_cache = use_cache
         torch.cuda.empty_cache()
@@ -335,8 +287,8 @@ class Pruner:
 class FlapPruner(Algorithm):
     def __init__(self, job: LMJob, **kwargs):
         self.job = job
-        self.args = FlapArgs.from_dict(kwargs)
-        logger.info(f"Experiment arguments: {self.args}")
+        self.args = create_instance(FlapConfig, kwargs)
+        log_dict(asdict(self.args), "FlapConfig.")
         self.kw = kwargs
         self.output_dir = self.job.user_dir.output
 
