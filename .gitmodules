@@ -3,7 +3,7 @@
 	url = https://github.com/nyunAI/TensorRT-LLM.git
 [submodule "pruning/flap/FLAP"]
 	path = pruning/flap/FLAP
-	url = https://github.com/CASIA-IVA-Lab/FLAP.git
+	url = https://github.com/nyunAI/FLAP.git
 [submodule "pruning/flap/nyuntam_adapt"]
 	path = pruning/flap/nyuntam_adapt
 	url = https://github.com/nyunAI/nyuntam-adapt.git
