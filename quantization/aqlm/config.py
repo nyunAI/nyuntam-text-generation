@@ -209,22 +209,3 @@ class AQLMConfig:
     finetune_config: FineTuneConfig = field(default_factory=FineTuneConfig)
     conversion_config: ConversionConfig = field(default_factory=ConversionConfig)
     save_intermediate_results: bool = False
-
-
-# if __name__ == "__main__":
-#     config = AQLMConfig()
-#     import yaml
-#     from dataclasses import asdict, fields, is_dataclass
-
-#     # iteratively build a dictionary from the config object and dump with yaml
-#     config_dict = {}
-#     for field in fields(config):
-#         field_name = field.name
-#         field_value = getattr(config, field_name)
-#         if is_dataclass(field.type):
-#             config_dict[field_name] = asdict(field_value)
-#         else:
-#             config_dict[field_name] = field_value
-
-#     with open("aqlm.yaml", "w") as f:
-#         yaml.dump(config_dict, f, indent=2)

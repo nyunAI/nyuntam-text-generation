@@ -63,7 +63,6 @@ class AQLM(Algorithm):
         self.config.conversion_config.pv_fsdp_dir = self.config.finetune_config.save
         self.config.conversion_config.save = conversion_outputs
 
-        # logger.info(f"Created AQLM instance with config: {self.config}")
         log_dict(asdict(self.config), prefix="AQLMConfig.")
 
     def compress_model(self):

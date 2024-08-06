@@ -252,8 +252,9 @@ class Dataset:
         ), "Tokenizer must be provided for AQLM caliberation dataloader"
         ds = load_from_disk(self.dataset_name_or_path)
         traindata = ds[self.split]
-        tokenizer.bos_token_id = 1
-        tokenizer.eos_token_id = 2
+        not_none_else_val = lambda x, val: x if x is not None else val
+        tokenizer.bos_token_id = not_none_else_val(tokenizer.bos_token_id, 1)
+        tokenizer.eos_token_id = not_none_else_val(tokenizer.eos_token_id, 2)
         trainloader = []
         for _ in trange(
             nsamples,

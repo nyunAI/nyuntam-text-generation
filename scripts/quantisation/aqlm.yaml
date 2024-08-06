@@ -35,11 +35,7 @@ llm:
       beam_size: 1
       codebook_value_nbits: 16
       codebook_value_num_groups: 1
-      dataset: dataset
-      dataset_name: null
-      devices: null
       dtype: "float16"
-      exp_name: null
       finetune_adam_beta1: 0.9
       finetune_adam_beta2: 0.999
       finetune_batch_size: 16
@@ -50,13 +46,10 @@ llm:
       in_group_size: 8
       init_max_iter: 100
       init_max_points_per_centroid: null
-      job_dataset: null
-      load: null
       local_batch_size: 1
       lr: 0.0001
       max_epochs: 100
       mix_compression: false
-      model_path: model_path
       model_seqlen: 4096
       nbits_per_codebook: 16
       new_eval: false
@@ -69,7 +62,6 @@ llm:
       print_frequency: 10
       relative_mse_tolerance: 0.01
       resume: false
-      save: null
       scale_nbits: 0
       seed: 0
       skip_out_loss: false
@@ -83,14 +75,8 @@ llm:
       wandb: false
     conversion_config:
       attn_implementation: null
-      base_model: base_model
       code_dtype: int32
       load_dtype: auto
-      monkeypatch_old_pickle: false
-      p_finetuned_state_dict: null
-      pv_fsdp_dir: null
-      quantized_model: quantized_model
-      save: save
       trust_remote_code: true
     finetune_config:
       adam_beta1: 0.9
@@ -102,7 +88,6 @@ llm:
       batch_size: 1 # 1 gpu
       beam_size: 1
       block_type: LlamaDecoderLayer
-      cache_dir: null
       code_adam_16bit: false
       code_beta1: 0.0
       code_beta2: 0.95
@@ -110,8 +95,6 @@ llm:
       code_lr: 0.001
       code_selection_temperature: 0
       code_trust_ratio: 0.01
-      dataset_config_name: null
-      dataset_name: dataset_name
       debias: true
       delta_decay: 0
       download_num_workers: null
@@ -134,18 +117,13 @@ llm:
       model_seqlen: 4096
       monkeypatch_old_pickle: false
       num_workers: 8
-      on_save: null
       overwrite_cache: false
       preprocessing_chunk_length: null
       preprocessing_keep_in_memory: false
       preprocessing_num_workers: 24
       print_every_steps: 1
-      quantized_model: quantized_model
-      save: null
-      save_dataset_and_exit: null
       save_every_steps: 1
       seed: 1337
-      split: none
       straight_through_buffer_dtype: float32
       trust_remote_code: true
       update_codebooks_and_scales: true

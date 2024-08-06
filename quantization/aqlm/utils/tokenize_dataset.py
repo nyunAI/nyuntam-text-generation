@@ -35,7 +35,8 @@ def tokenize_dataset(config: AQLMConfig):
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(args.base_model)
     assert tokenizer.eos_token_id is not None
-    tokenizer.pad_token = tokenizer.eos_token
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
 
     assert (
         args.save_dataset_and_exit is not None
