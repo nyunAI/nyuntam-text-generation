@@ -7,9 +7,15 @@ from nyuntam.algorithm import Algorithm
 
 
 def _import_AutoAWQ() -> Algorithm:
-    from .quantisation.autoawq import AutoAWQ
+    from .quantization.autoawq import AutoAWQ
 
     return AutoAWQ
+
+
+def _import_LMQuant() -> Algorithm:
+    from .quantization.mit_han_lab_lmquant import LMQuant
+
+    return LMQuant
 
 
 # ===================================
@@ -39,6 +45,9 @@ def __getattr__(name: str) -> Algorithm:
     # quantization
     if name == "AutoAWQ":
         return _import_AutoAWQ()
+
+    elif name == "LMQuant":
+        return _import_LMQuant()
 
     # pruning
     elif name == "FlapPruner":

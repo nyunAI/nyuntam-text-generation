@@ -1,11 +1,18 @@
-## quantisation/autoawq
--r quantisation/autoawq/requirements.txt
+## quantization/autoawq
+# -r quantization/autoawq/requirements.txt
+
+## quantization/lmquant
+-r quantization/mit_han_lab_lmquant/requirements.txt
 
 ## pruning/flap
--r pruning/flap/requirements.txt
+# -r pruning/flap/requirements.txt
 
 ## engines/tensorrt_llm
 # -r engines/tensorrt_llm/requirements.txt
+
+## engines/qserve
+-r engines/mit_han_lab_qserve/requirements.txt
+engines/mit_han_lab_qserve/QServe/kernels
 
 ## misc
 strenum # if python < 3.11
