@@ -7,6 +7,13 @@ from nyuntam.utils.device import CudaDeviceEnviron
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 
+from typing import Set
+from pathlib import Path
+import os
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 
 @dataclass
 class UserDir:
@@ -29,6 +36,24 @@ class UserDir:
         default=None, metadata={"help": "Datasets directory for the Job."}
     )
     jobs: Path = field(default=None, metadata={"help": "Jobs directory for the Job."})
+
+    __cleanup_paths: Set[Path] = field(default_factory=set, init=False)
+
+    def cleanup(self):
+        """A job cleanup method to remove intermediary files and directories registered for cleanup."""
+        _removed = []
+        for path in self.__cleanup_paths:
+            os.system(f"rm -rf {path}")
+            logger.info(f"[{self.__name__}.cleanup] Removed: {path}")
+            _removed.append(path)
+        self.__cleanup_paths = self.__cleanup_paths - set(_removed)
+        assert (
+            len(self.__cleanup_paths) == 0
+        ), f"Failed to cleanup: {self.__cleanup_paths}"
+
+    def register_for_cleanup(self, path: Path):
+        """Register a path for cleanup."""
+        self.__cleanup_paths.add(path)
 
     def __post_init__(self):
         if self.root is None:
@@ -53,6 +78,18 @@ class UserDir:
         for path in paths:
             if not path.exists():
                 path.mkdir(parents=True, exist_ok=True)
+
+    def _get_tmp_dir(self, root: Path, register_for_cleanup=True) -> Path:
+        tmp_dir = root / "tmp"
+        if not tmp_dir.exists():
+            tmp_dir.mkdir(parents=True, exist_ok=True)
+        if register_for_cleanup:
+            self.register_for_cleanup(tmp_dir)
+        return tmp_dir
+
+    def get_tmp_output_dir(self, register_for_cleanup=True) -> Path:
+        """Create a temporary directory at the Job output."""
+        return self._get_tmp_dir(self.output, register_for_cleanup)
 
 
 @dataclass
