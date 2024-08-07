@@ -52,6 +52,7 @@ class Pruner:
         self.device_to_use = self.job.environment.cuda_device_ids[0]
 
     def prune(self):
+        # method adapted from FLAP.main
         np.random.seed(self.args.seed)
         torch.random.manual_seed(self.args.seed)
         dtype = eval(f'torch.{self.kw.get("dtype", "float16")}')
@@ -64,21 +65,24 @@ class Pruner:
             trust_remote_code=True,
         )
         device = torch.device(f"cuda:{self.device_to_use}")
+
         for i in range(len(self.model.model.layers)):
+            # set the bias to zero for self_attn.o_proj and mlp.down_proj
+            # for a detailed explanation, refer - https://github.com/nyunAI/nyuntam-text-generation/pull/5#discussion_r1705901386
             self.model.model.layers[i].self_attn.o_proj.bias = torch.nn.Parameter(
                 torch.zeros(
                     self.model.model.layers[i].self_attn.o_proj.weight.shape[0],
                     device=self.model.model.layers[i].self_attn.o_proj.weight.device,
                     dtype=dtype,
                 )
-            )  # 或 'cuda'
+            )
             self.model.model.layers[i].mlp.down_proj.bias = torch.nn.Parameter(
                 torch.zeros(
                     self.model.model.layers[i].mlp.down_proj.weight.shape[0],
                     device=self.model.model.layers[i].mlp.down_proj.weight.device,
                     dtype=dtype,
                 )
-            )  # 或 'cuda'
+            )
             torch.nn.init.zeros_(self.model.model.layers[i].self_attn.o_proj.bias)
             torch.nn.init.zeros_(self.model.model.layers[i].mlp.down_proj.bias)
 
@@ -100,7 +104,7 @@ class Pruner:
 
         logger.info("*" * 30)
         logger.info(
-            f"model parameter {sum(p.numel() for p in self.model.parameters()) / 1000 ** 3:.2f}B"
+            f"pruned model parameter {sum(p.numel() for p in self.model.parameters()) / 1000 ** 3:.2f}B"
         )
         logger.info("*" * 30)
 
@@ -287,7 +291,13 @@ class Pruner:
 class FlapPruner(Algorithm):
     def __init__(self, job: LMJob, **kwargs):
         self.job = job
-        self.args = create_instance(FlapConfig, kwargs)
+        self.args = create_instance(
+            FlapConfig,
+            {
+                **kwargs,
+                "_config_path": job.model.model_path,
+            },
+        )
         log_dict(asdict(self.args), "FlapConfig.")
         self.kw = kwargs
         self.output_dir = self.job.user_dir.output
