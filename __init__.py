@@ -18,6 +18,12 @@ def _import_LMQuant() -> Algorithm:
     return LMQuant
 
 
+def _import_AQLM() -> Algorithm:
+    from .quantization.aqlm import AQLM
+
+    return AQLM
+
+
 # ===================================
 #               pruning
 # ===================================
@@ -48,6 +54,9 @@ def __getattr__(name: str) -> Algorithm:
 
     elif name == "LMQuant":
         return _import_LMQuant()
+
+    elif name == "AQLM":
+        return _import_AQLM()
 
     # pruning
     elif name == "FlapPruner":
