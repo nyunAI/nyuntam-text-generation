@@ -1,15 +1,15 @@
 ALGORITHM: "FlapPruner"
 ALGO_TYPE: "llm"
-MODEL: "meta-llama/Llama-2-7b-hf"
-CACHE_PATH: "/user_data/.cache"
+MODEL: "meta-llama/Meta-Llama-3-8B"
+CACHE_PATH: "user_data/.cache"
 JOB_ID: 1
-JOB_PATH: "/user_data/jobs/1"
+JOB_PATH: "user_data/jobs/1"
 JOB_SERVICE: "Kompress"
-LOGGING_PATH: "/user_data/logs/1/"
+LOGGING_PATH: "user_data/logs/1/"
 MODEL_PATH: ""
 TASK: "llm"
-OUTPUT_PATH: "/user_data/models"
-USER_FOLDER: "/user_data"
+OUTPUT_PATH: "user_data/models"
+USER_FOLDER: "user_data"
 PLATFORM: "huggingface"
 
 DATA_URL: ""
@@ -25,14 +25,14 @@ CUDA_ID: "0"
 llm:
   FlapPruner:
     dtype: "float16"
-    pruning_ratio: 0.2
-    metrics: "WIFV" # "IFV", "WIFV", "WIFN"
-    structure: "AL-AM" # "UL-UM", "UL-MM", "AL-MM", "AL-AM"
-
-    # other parameters
-    remove_heads: 8
+    metrics: "WIFV"
+    nsamples: 1024
+    pruning_ratio: 0.5
+    remove_heads: -1
+    save_model: None
     seed: 0
-    nsamples: 2048
+    start_pruning_layer_idx: 22
+    structure: "AL-AM"
 
     to_finetune: False
 

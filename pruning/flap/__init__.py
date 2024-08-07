@@ -1,3 +1,4 @@
-from .main import FlapPruner, FlapArgs
+from .main import FlapPruner
+from .config import FlapConfig
 
-__all__ = ["FlapPruner", "FlapArgs"]
+__all__ = ["FlapPruner", "FlapConfig"]
