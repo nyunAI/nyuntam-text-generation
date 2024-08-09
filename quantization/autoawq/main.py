@@ -96,9 +96,7 @@ class _AutoAWQ:
     def quantize(self) -> None:
         """Quantize the model"""
         factory_kwargs = {"low_cpu_mem_usage": True}
-        cuda_env = CudaDeviceEnviron.get_instance()
-        if cuda_env.num_device > 1:
-            factory_kwargs.update({"device_map": "auto"})
+        factory_kwargs.update({"device_map": "auto"})
 
         logger.info(f"Quantization arguments: {self.config.to_dict()}")
 
