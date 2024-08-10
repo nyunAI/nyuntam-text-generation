@@ -23,6 +23,7 @@ import os
 import gc
 import torch
 import numpy as np
+import json
 from tqdm import tqdm, trange
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from dataclasses import asdict
@@ -43,7 +44,7 @@ def free(times=2):
 
 
 class Pruner:
-    def __init__(self, args, job: LMJob, **kwargs):
+    def __init__(self, args: FlapConfig, job: LMJob, **kwargs):
         self.args = args
         self.job = job
         self.kw = kwargs
@@ -119,6 +120,11 @@ class Pruner:
             logger.warn(
                 f"couldn't save with torch.save, saved with save_pretrained instead"
             )
+        for attr in ["_config", "_config_path"]:
+            if hasattr(self.args, attr):
+                delattr(self.args, attr)
+        with open(self.output_dir / "prune_config.json", "w") as f:
+            json.dump(asdict(self.args), f, indent=4)
         logger.info("Model pruned")
 
         del self.model
