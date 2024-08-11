@@ -123,8 +123,13 @@ class LMQuant(Algorithm):
             QuantConfigHandler.Config.LLM
         )
         default_llm_config = deep_update(default_llm_config, default_qoq_config)
+        model_name = get_cleaned_name(job.model.model_name.lower())
+        model_name = model_name.replace(job.model.size, "").replace(
+            job.model.size.lower(), ""
+        )
+        model_name += f"-{job.model.size.lower()}"
         _updated_mappings = {
-            "model.name": get_cleaned_name(job.model.model_name.lower()),
+            "model.name": model_name,
             "model.local_path": str(job.model.model_path.absolute().resolve()),
             "calib.dataset_path": str(
                 job.dataset.dataset_name_or_path.absolute().resolve()
