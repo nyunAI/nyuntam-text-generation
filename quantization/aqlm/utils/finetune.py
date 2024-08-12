@@ -1,6 +1,6 @@
 # Parts of this code are taken from https://github.com/nyunAI/AQLM/blob/pv-tuning/finetune_fsdp.py
 
-from text_generation.quantization.aqlm import AQLMConfig
+from text_generation.quantization.aqlm.config import AQLMConfig
 
 # quantization/aqlm/AQLM
 from AQLM.finetune_fsdp import (

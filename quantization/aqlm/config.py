@@ -117,6 +117,7 @@ class FineTuneConfig:
     split: str = "none"
     trust_remote_code: bool = True
     use_fast_tokenizer: bool = False
+    skip_grouping: bool = False
 
     ### finetuning
     save: Optional[Union[str, Path]] = None

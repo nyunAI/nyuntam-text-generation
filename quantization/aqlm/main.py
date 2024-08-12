@@ -1,12 +1,14 @@
 from text_generation.core.job import LMJob
-from text_generation.quantization.aqlm import (
-    caliberate_model,
-    finetune_quantized,
-    convert_to_hf,
+from text_generation.quantization.aqlm.config import (
     AQLMConfig,
     CalibrationConfig,
     FineTuneConfig,
     ConversionConfig,
+)
+from text_generation.quantization.aqlm.utils import (
+    caliberate_model,
+    finetune_quantized,
+    convert_to_hf,
 )
 from text_generation.utils import create_instance, log_dict
 

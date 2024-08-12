@@ -1,6 +1,9 @@
 # Some parts of this code are taken from https://github.com/Vahe1994/AQLM/blob/pv-tuning/main.py
 
-from text_generation.quantization.aqlm import AQLMConfig, CalibrationConfig
+import torch.distributed
+import torch.distributed.elastic
+import torch.distributed.elastic.multiprocessing
+from text_generation.quantization.aqlm.config import AQLMConfig, CalibrationConfig
 
 # quantization/aqlm/AQLM
 from AQLM.main import get_model, quantize_aq, get_loaders, perplexity_eval

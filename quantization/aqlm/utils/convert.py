@@ -1,6 +1,6 @@
 # Parts of this code are taken from https://github.com/nyunAI/AQLM/blob/pv-tuning/convert_legacy_model_format.py
 
-from text_generation.quantization.aqlm import AQLMConfig
+from text_generation.quantization.aqlm.config import AQLMConfig
 
 # quantization/aqlm/AQLM
 from AQLM.convert_legacy_model_format import (
