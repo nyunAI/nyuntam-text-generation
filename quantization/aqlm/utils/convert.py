@@ -24,6 +24,9 @@ def convert_to_hf(config: AQLMConfig):
     """Converts an FSDP finetuned quantized model to Hugging Face format."""
 
     args = config.conversion_config
+    if not config.overwrite_or_run_all and not config.overwrite_or_run_conversion:
+        logger.info("Skipping conversion")
+        return
 
     assert args.pv_fsdp_dir, "FSDP checkpoint directory must be specified"
 

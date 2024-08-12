@@ -66,6 +66,10 @@ class AQLM(Algorithm):
         self.config.conversion_config.save = conversion_outputs
 
         log_dict(asdict(self.config), prefix="AQLMConfig.")
+        if self.config.overwrite:
+            logger.warning(
+                "Overwrite is enabled. Existing files will be overwritten for any intermediate results."
+            )
 
     def compress_model(self):
         # Caliberate the model

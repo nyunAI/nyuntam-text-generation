@@ -42,10 +42,11 @@ def tokenize_dataset(config: AQLMConfig):
         args.save_dataset_and_exit is not None
     ), "Please provide a path to save the dataset"
     save_path = Path(args.save_dataset_and_exit)
-    if save_path.exists():
-        logger.info(
-            f"Tokenized dataset already exists at {save_path}, skipping tokenization."
-        )
+    if (
+        not config.overwrite_or_run_all
+        and not config.overwrite_or_run_dataset_tokenization
+    ):
+        logger.info(f"Skipping tokenization at save path: {save_path}")
         return
 
     assert isinstance(

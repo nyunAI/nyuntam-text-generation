@@ -60,6 +60,10 @@ def finetune_quantized(config: AQLMConfig):
     torch.cuda.set_device(device)
     args = config.finetune_config
 
+    if not config.overwrite_or_run_all and not config.overwrite_or_run_finetune:
+        logger.info("Skipping finetuning")
+        return
+
     assert args.batch_size is not None, "please specify batch size"
     assert args.batch_size % world_size == 0
     if args.microbatch_size is None:

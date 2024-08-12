@@ -2,6 +2,7 @@ from text_generation.core.dataset import Dataset
 
 from dataclasses import dataclass, field
 from typing import Optional, Union, Iterable
+from functools import cached_property
 from pathlib import Path
 import os
 
@@ -210,3 +211,40 @@ class AQLMConfig:
     finetune_config: FineTuneConfig = field(default_factory=FineTuneConfig)
     conversion_config: ConversionConfig = field(default_factory=ConversionConfig)
     save_intermediate_results: bool = False
+    overwrite: bool = False
+
+    def _overwrite_or_run(self, save_path: Union[str, Path]) -> bool:
+        if not save_path:
+            return self.overwrite
+        save_path = Path(save_path)
+
+        return (
+            self.overwrite
+            or not save_path.exists()
+            or len(list(save_path.iterdir())) == 0
+        )
+
+    @cached_property
+    def overwrite_or_run_caliberation(self):
+        return self._overwrite_or_run(self.calibration_config.save)
+
+    @cached_property
+    def overwrite_or_run_conversion(self):
+        return self._overwrite_or_run(self.conversion_config.save)
+
+    @cached_property
+    def overwrite_or_run_dataset_tokenization(self):
+        return self._overwrite_or_run(self.finetune_config.save_dataset_and_exit)
+
+    @cached_property
+    def overwrite_or_run_finetune(self):
+        return self._overwrite_or_run(self.finetune_config.save)
+
+    @cached_property
+    def overwrite_or_run_all(self):
+        return (
+            self.overwrite_or_run_caliberation
+            and self.overwrite_or_run_conversion
+            and self.overwrite_or_run_dataset_tokenization
+            and self.overwrite_or_run_finetune
+        )

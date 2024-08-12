@@ -16,6 +16,7 @@ import os
 import torch
 import logging
 import transformers
+from pathlib import Path
 
 try:
     import wandb
@@ -35,6 +36,11 @@ def caliberate_model(config: AQLMConfig):
     torch.backends.cuda.matmul.allow_tf32 = False
 
     args: CalibrationConfig = config.calibration_config
+
+    if not config.overwrite_or_run_all and not config.overwrite_or_run_caliberation:
+        logger.info("Skipping caliberation")
+        return
+
     if args.devices is None:
         if torch.cuda.is_available():
             args.devices = [
