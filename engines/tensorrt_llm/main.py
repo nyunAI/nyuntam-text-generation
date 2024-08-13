@@ -1,7 +1,7 @@
 from text_generation.core.job import LMJob
 
 # nyuntam
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 
 import gc
 import os
@@ -136,7 +136,7 @@ def load_model_type_from_config_path(config_path: Path):
         return config["model_type"]
 
 
-class TensorRTLLM(Algorithm):
+class TensorRTLLM(TextGenerationAlgorithm):
 
     __procs = list()
 

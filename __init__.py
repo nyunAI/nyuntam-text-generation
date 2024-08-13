@@ -1,24 +1,24 @@
 # nyuntam
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 
 # ===================================
 #           quantization
 # ===================================
 
 
-def _import_AutoAWQ() -> Algorithm:
+def _import_AutoAWQ() -> TextGenerationAlgorithm:
     from .quantization.autoawq import AutoAWQ
 
     return AutoAWQ
 
 
-def _import_LMQuant() -> Algorithm:
+def _import_LMQuant() -> TextGenerationAlgorithm:
     from .quantization.mit_han_lab_lmquant import LMQuant
 
     return LMQuant
 
 
-def _import_AQLM() -> Algorithm:
+def _import_AQLM() -> TextGenerationAlgorithm:
     from .quantization.aqlm import AQLM
 
     return AQLM
@@ -29,7 +29,7 @@ def _import_AQLM() -> Algorithm:
 # ===================================
 
 
-def _import_Flap() -> Algorithm:
+def _import_Flap() -> TextGenerationAlgorithm:
     from .pruning.flap import FlapPruner
 
     return FlapPruner
@@ -40,13 +40,13 @@ def _import_Flap() -> Algorithm:
 # ===================================
 
 
-def _import_TensorRTLLM() -> Algorithm:
+def _import_TensorRTLLM() -> TextGenerationAlgorithm:
     from .engines.tensorrt_llm import TensorRTLLM
 
     return TensorRTLLM
 
 
-def __getattr__(name: str) -> Algorithm:
+def __getattr__(name: str) -> TextGenerationAlgorithm:
 
     # quantization
     if name == "AutoAWQ":

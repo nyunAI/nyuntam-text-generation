@@ -2,7 +2,7 @@ from text_generation.core.job import LMJob
 
 # nyuntam
 from nyuntam.utils.device import CudaDeviceEnviron
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 
 from typing import List, Dict
 from awq import AutoAWQForCausalLM
@@ -123,7 +123,7 @@ class _AutoAWQ:
 # ************
 
 
-class AutoAWQ(Algorithm):
+class AutoAWQ(TextGenerationAlgorithm):
     def __init__(self, job: LMJob, **kwargs):
 
         self.kw = kwargs

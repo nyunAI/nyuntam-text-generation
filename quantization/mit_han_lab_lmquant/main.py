@@ -6,7 +6,7 @@ from text_generation.utils import (
 from text_generation.engines.mit_han_lab_qserve import QServe
 
 # nyuntam
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 from nyuntam.utils._backports import StrEnum
 
 
@@ -75,7 +75,7 @@ class QuantConfigHandler:
             return yaml.safe_load(f)
 
 
-class LMQuant(Algorithm):
+class LMQuant(TextGenerationAlgorithm):
 
     cleanup_paths: Set[Path] = set()
 
