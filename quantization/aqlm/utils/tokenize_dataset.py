@@ -2,6 +2,7 @@
 
 from text_generation.core.dataset import Dataset
 from text_generation.quantization.aqlm.config import AQLMConfig
+from text_generation.quantization.aqlm.utils.distributed import get_rank
 
 # quantization/aqlm/AQLM
 from AQLM.src.datautils import (
@@ -25,8 +26,9 @@ def tokenize_dataset(config: AQLMConfig):
     """Prepares dataset for AQLM PV-Tuning."""
 
     assert torch.cuda.is_available() and torch.distributed.is_available()
-    torch.distributed.init_process_group()
-    rank = torch.distributed.get_rank()
+    rank = get_rank()
+    if rank != 0:
+        return
     world_size = torch.distributed.get_world_size()
     device = torch.device(f"cuda:{rank}")
     torch.cuda.set_device(device)
@@ -83,7 +85,12 @@ def tokenize_dataset(config: AQLMConfig):
             desc=f"Splitting dataset over newline into chunks of ~{args.preprocessing_chunk_length} characters",
         )
     tokenized_dataset = dataset.map(
-        lambda example: tokenizer(example[text_column_name]),
+        lambda example: tokenizer(
+            example[text_column_name],
+            padding="max_length",
+            max_length=args.model_seqlen,
+            truncation=True,
+        ),
         num_proc=(
             args.preprocessing_num_workers
             if args.preprocessing_num_workers is not None
@@ -94,20 +101,23 @@ def tokenize_dataset(config: AQLMConfig):
         load_from_cache_file=not args.overwrite_cache,
         desc="Running tokenizer on dataset",
     )
-    lm_dataset = tokenized_dataset.map(
-        partial(group_texts, block_size=args.model_seqlen, add_labels=False),
-        batched=True,
-        num_proc=(
-            args.preprocessing_num_workers
-            if args.preprocessing_num_workers is not None
-            else args.num_workers
-        ),
-        keep_in_memory=args.preprocessing_keep_in_memory,
-        load_from_cache_file=not args.overwrite_cache,
-        desc=f"Grouping texts in chunks of {args.model_seqlen}",
-    )
-    assert is_tokenized(lm_dataset)
+
+    if not args.skip_grouping:
+        tokenized_dataset = tokenized_dataset.map(
+            partial(group_texts, block_size=args.model_seqlen, add_labels=False),
+            batched=True,
+            num_proc=(
+                args.preprocessing_num_workers
+                if args.preprocessing_num_workers is not None
+                else args.num_workers
+            ),
+            keep_in_memory=args.preprocessing_keep_in_memory,
+            load_from_cache_file=not args.overwrite_cache,
+            desc=f"Grouping texts in chunks of {args.model_seqlen}",
+        )
+        assert is_tokenized(tokenized_dataset)
+
     if rank == 0:
-        lm_dataset.save_to_disk(save_path)
+        tokenized_dataset.save_to_disk(save_path)
         logger.info(f"Saved tokenized dataset to {save_path}")
-    return lm_dataset
+    return tokenized_dataset

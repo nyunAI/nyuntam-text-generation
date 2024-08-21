@@ -234,7 +234,7 @@ class AQLMConfig:
 
     @cached_property
     def overwrite_or_run_dataset_tokenization(self):
-        return self._overwrite_or_run(self.finetune_config.save_dataset_and_exit)
+        return self._overwrite_or_run(self.finetune_config.dataset_name)
 
     @cached_property
     def overwrite_or_run_finetune(self):

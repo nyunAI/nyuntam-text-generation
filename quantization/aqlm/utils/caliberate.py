@@ -1,9 +1,7 @@
 # Some parts of this code are taken from https://github.com/Vahe1994/AQLM/blob/pv-tuning/main.py
 
-import torch.distributed
-import torch.distributed.elastic
-import torch.distributed.elastic.multiprocessing
 from text_generation.quantization.aqlm.config import AQLMConfig, CalibrationConfig
+from text_generation.quantization.aqlm.utils.distributed import get_rank
 
 # quantization/aqlm/AQLM
 from AQLM.main import get_model, quantize_aq, get_loaders, perplexity_eval
@@ -30,6 +28,9 @@ logger = logging.getLogger(__name__)
 
 def caliberate_model(config: AQLMConfig):
     """AQLM calibration script for quantizing a model"""
+    rank = get_rank()
+    if rank != 0:
+        return
 
     torch.set_num_threads(min(16, torch.get_num_threads()))
     torch.backends.cudnn.allow_tf32 = False
@@ -96,7 +97,6 @@ def caliberate_model(config: AQLMConfig):
             val_data = None
         logger.info("Quantizing model...")
         results = quantize_aq(model, train_data, val_data, args)
-        return results
 
     logger.info("Evaluating perplexity...")
     torch.cuda.reset_peak_memory_stats()

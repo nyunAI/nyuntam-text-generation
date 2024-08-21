@@ -1,6 +1,7 @@
 # Parts of this code are taken from https://github.com/nyunAI/AQLM/blob/pv-tuning/convert_legacy_model_format.py
 
 from text_generation.quantization.aqlm.config import AQLMConfig
+from text_generation.quantization.aqlm.utils.distributed import get_rank
 
 # quantization/aqlm/AQLM
 from AQLM.convert_legacy_model_format import (
@@ -22,7 +23,9 @@ logger = logging.getLogger(__name__)
 
 def convert_to_hf(config: AQLMConfig):
     """Converts an FSDP finetuned quantized model to Hugging Face format."""
-
+    rank = get_rank()
+    if rank != 0:
+        return
     args = config.conversion_config
     if not config.overwrite_or_run_all and not config.overwrite_or_run_conversion:
         logger.info("Skipping conversion")

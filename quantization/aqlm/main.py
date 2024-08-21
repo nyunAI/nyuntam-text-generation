@@ -9,6 +9,7 @@ from text_generation.quantization.aqlm.utils import (
     caliberate_model,
     finetune_quantized,
     convert_to_hf,
+    get_rank,
 )
 from text_generation.utils import create_instance, log_dict
 
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 class AQLM(Algorithm):
 
     def __init__(self, job: LMJob, **kwargs):
+        rank = get_rank()
         self.job = job
         self.config: AQLMConfig = AQLMConfig(
             save_intermediate_results=kwargs.get("save_intermediate_results", False),
@@ -56,7 +58,7 @@ class AQLM(Algorithm):
         self.config.finetune_config.quantized_model = (
             self.config.calibration_config.save
         )
-        self.config.finetune_config.dataset_name = dataset_outputs
+        self.config.finetune_config.dataset_name = str(dataset_outputs)
         self.config.finetune_config.save = str(finetune_outputs)
 
         # conversion config
@@ -65,11 +67,22 @@ class AQLM(Algorithm):
         self.config.conversion_config.pv_fsdp_dir = self.config.finetune_config.save
         self.config.conversion_config.save = conversion_outputs
 
-        log_dict(asdict(self.config), prefix="AQLMConfig.")
-        if self.config.overwrite:
-            logger.warning(
-                "Overwrite is enabled. Existing files will be overwritten for any intermediate results."
+        if rank == 0:
+            log_dict(
+                {
+                    **asdict(self.config),
+                    "overwrite_or_run_caliberation": self.config.overwrite_or_run_caliberation,
+                    "overwrite_or_run_conversion": self.config.overwrite_or_run_conversion,
+                    "overwrite_or_run_dataset_tokenization": self.config.overwrite_or_run_dataset_tokenization,
+                    "overwrite_or_run_finetune": self.config.overwrite_or_run_finetune,
+                    "overwrite_or_run_all": self.config.overwrite_or_run_all,
+                },
+                prefix="AQLMConfig.",
             )
+            if self.config.overwrite:
+                logger.warning(
+                    "Overwrite is enabled. Existing files will be overwritten for any intermediate results."
+                )
 
     def compress_model(self):
         # Caliberate the model
