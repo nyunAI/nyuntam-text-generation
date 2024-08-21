@@ -4,7 +4,7 @@ from text_generation.utils import create_instance, log_dict
 from text_generation.pruning.flap.config import FlapConfig
 
 # nyuntam
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 
 # pruning/flap/FLAP
 from FLAP.lib.layerwrapper import BiasGPT
@@ -294,7 +294,7 @@ class Pruner:
         torch.cuda.empty_cache()
 
 
-class FlapPruner(Algorithm):
+class FlapPruner(TextGenerationAlgorithm):
     def __init__(self, job: LMJob, **kwargs):
         self.job = job
         self.args = create_instance(

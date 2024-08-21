@@ -8,7 +8,7 @@ from nyuntam.factory import Factory as BaseFactory, FactoryTypes
 from nyuntam.constants.keys import FactoryArgumentKeys
 from nyuntam.utils.device import CudaDeviceEnviron
 from nyuntam.utils.dtype import get_dtype_from_string
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 
 
 from pathlib import Path
@@ -20,7 +20,7 @@ class Factory(BaseFactory):
 
     _type = FactoryTypes.TEXT_GENERATION
 
-    def get_algorithm(self, name: str) -> Algorithm:
+    def get_algorithm(self, name: str) -> TextGenerationAlgorithm:
         return get_algorithm(name)
 
     def __init__(self, args: dict) -> BaseFactory:

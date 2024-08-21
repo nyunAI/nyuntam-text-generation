@@ -11,7 +11,7 @@ from text_generation.quantization.aqlm import (
 from text_generation.utils import create_instance, log_dict
 
 # nyuntam
-from nyuntam.algorithm import Algorithm
+from nyuntam.algorithm import TextGenerationAlgorithm
 
 from dataclasses import asdict
 import logging
@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class AQLM(Algorithm):
+class AQLM(TextGenerationAlgorithm):
 
     def __init__(self, job: LMJob, **kwargs):
         self.job = job
