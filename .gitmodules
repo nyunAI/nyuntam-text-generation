@@ -4,9 +4,6 @@
 [submodule "pruning/flap/FLAP"]
 	path = pruning/flap/FLAP
 	url = https://github.com/nyunAI/FLAP.git
-[submodule "pruning/flap/nyuntam_adapt"]
-	path = pruning/flap/nyuntam_adapt
-	url = https://github.com/nyunAI/nyuntam-adapt.git
 [submodule "engines/mit_han_lab_qserve/QServe"]
 	path = engines/mit_han_lab_qserve/QServe
 	url = https://github.com/nyunAI/qserve.git
