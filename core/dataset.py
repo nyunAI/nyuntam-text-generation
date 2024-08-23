@@ -160,7 +160,7 @@ class Dataset:
             )
             return
         try:
-            ds.save_to_disk(save_dir)
+            ds.save_to_disk(str(save_dir))
         except Exception as e:
             raise RuntimeError(f"Error while saving the dataset to {save_dir}") from e
 
