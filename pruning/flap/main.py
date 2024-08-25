@@ -5,6 +5,7 @@ from text_generation.pruning.flap.config import FlapConfig
 
 # nyuntam
 from nyuntam.algorithm import TextGenerationAlgorithm
+from nyuntam.constants.keys import AdaptTasks
 
 # pruning/flap/FLAP
 from FLAP.lib.layerwrapper import BiasGPT
@@ -14,10 +15,6 @@ from FLAP.lib.prune import (
     prepare_calibration_input,
     compress,
 )
-
-# nyuntam-adapt
-from nyuntam_adapt.tasks import CausalLLM
-from nyuntam_adapt.tasks.params import AdaptParams
 
 import os
 import gc
@@ -315,6 +312,12 @@ class FlapPruner(TextGenerationAlgorithm):
 
     def set_adapter(self):
         """Factory method to set the adapter object."""
+
+        # nyuntam-adapt
+        from nyuntam_adapt.tasks import export_task_modules
+        from nyuntam_adapt.utils.params_utils import AdaptParams
+
+        CausalLLM = export_task_modules(str(AdaptTasks.TEXT_GENERATION))
 
         self.adapt_params = create_instance(AdaptParams, self.kw)
         # value updates
