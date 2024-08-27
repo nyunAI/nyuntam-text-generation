@@ -124,6 +124,7 @@ llm:
       print_every_steps: 1
       save_every_steps: 1
       seed: 1337
+      skip_grouping: true
       straight_through_buffer_dtype: float32
       trust_remote_code: true
       update_codebooks_and_scales: true

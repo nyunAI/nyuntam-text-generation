@@ -249,28 +249,58 @@ class Dataset:
 
         assert (
             tokenizer is not None
-        ), "Tokenizer must be provided for AQLM caliberation dataloader"
+        ), "Tokenizer must be provided for AQLM calibration dataloader"
+
         ds = load_from_disk(self.dataset_name_or_path)
         traindata = ds[self.split]
         not_none_else_val = lambda x, val: x if x is not None else val
         tokenizer.bos_token_id = not_none_else_val(tokenizer.bos_token_id, 1)
         tokenizer.eos_token_id = not_none_else_val(tokenizer.eos_token_id, 2)
         trainloader = []
+        searched_indices = set()
+
         for _ in trange(
             nsamples,
             desc=f"Making {self.dataset_name_or_path} calibration set",
             leave=False,
         ):
             while True:
+                if len(searched_indices) >= len(traindata):
+                    logger.error(
+                        f"Dataset {self.dataset_name_or_path} does not have enough samples with the required sequence length "
+                        f"to create the calibration set. Total searched indices: {len(searched_indices)}, required nsamples: {nsamples}, "
+                        f"seqlen: {seqlen}"
+                    )
+                    raise RuntimeError(
+                        f"Dataset {self.dataset_name_or_path} does not have enough samples with the required sequence length "
+                        f"to create the calibration set. Searched {len(searched_indices)} indices, "
+                        f"needed {nsamples} samples with sequence length {seqlen}."
+                    )
+
                 i = random.randint(0, len(traindata) - 1)
+
+                if i in searched_indices:
+                    continue
+
+                searched_indices.add(i)
                 trainenc = tokenizer(
                     traindata[i][self.new_text_column], return_tensors="pt"
                 )
+
                 if trainenc.input_ids.shape[1] > seqlen:
                     break
+
             i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
             j = i + seqlen
             inp = trainenc.input_ids[:, i:j]
-            assert inp.shape[1] == seqlen
+
+            assert (
+                inp.shape[1] == seqlen
+            ), f"Extracted sequence length {inp.shape[1]} does not match the required {seqlen}"
+            logger.debug(
+                f"Added sequence from index {i} to {j} with shape {inp.shape} to calibration set."
+            )
             trainloader.append(inp)
+
+        logger.info(f"Calibration set created with {len(trainloader)} samples.")
         return trainloader

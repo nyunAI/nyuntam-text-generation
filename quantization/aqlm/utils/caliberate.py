@@ -1,6 +1,7 @@
 # Some parts of this code are taken from https://github.com/Vahe1994/AQLM/blob/pv-tuning/main.py
 
-from text_generation.quantization.aqlm import AQLMConfig, CalibrationConfig
+from text_generation.quantization.aqlm.config import AQLMConfig, CalibrationConfig
+from text_generation.quantization.aqlm.utils.distributed import get_rank
 
 # quantization/aqlm/AQLM
 from AQLM.main import get_model, quantize_aq, get_loaders, perplexity_eval
@@ -13,6 +14,7 @@ import os
 import torch
 import logging
 import transformers
+from pathlib import Path
 
 try:
     import wandb
@@ -26,12 +28,20 @@ logger = logging.getLogger(__name__)
 
 def caliberate_model(config: AQLMConfig):
     """AQLM calibration script for quantizing a model"""
+    rank = get_rank()
+    if rank != 0:
+        return
 
     torch.set_num_threads(min(16, torch.get_num_threads()))
     torch.backends.cudnn.allow_tf32 = False
     torch.backends.cuda.matmul.allow_tf32 = False
 
     args: CalibrationConfig = config.calibration_config
+
+    if not config.overwrite_or_run_all and not config.overwrite_or_run_caliberation:
+        logger.info("Skipping caliberation")
+        return
+
     if args.devices is None:
         if torch.cuda.is_available():
             args.devices = [
@@ -87,7 +97,6 @@ def caliberate_model(config: AQLMConfig):
             val_data = None
         logger.info("Quantizing model...")
         results = quantize_aq(model, train_data, val_data, args)
-        return results
 
     logger.info("Evaluating perplexity...")
     torch.cuda.reset_peak_memory_stats()
