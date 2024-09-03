@@ -77,7 +77,6 @@ SPLIT: "train"
 FORMAT_STRING: # format string for multicolumned datasets
 
 ```
-for details on dataset arguments checkout [nyun-docs/dataset](https://nyunai.github.io/nyun-docs/dataset/)
 
 - ***Model***
 
@@ -86,7 +85,8 @@ MODEL: Llama-3
 MODEL: "meta-llama/Meta-Llama-3-8B"  # hf repo id's
 CUSTOM_MODEL_PATH: ""
 ```
-for details on model arguments checkout [nyun-docs/models](https://nyunai.github.io/nyun-docs/model)
+
+for details on dataset and model configurations checkout [nyuntam-docs/nyuntam_text_generation](https://nyunai.github.io/nyuntam-docs/nyuntam_text_generation/)
 
 ### Run command
 ```sh
