@@ -73,7 +73,7 @@ class Dataset:
                 ) from e
         elif isinstance(path, Path):
             try:
-                ds = load_from_disk(path)
+                ds = load_from_disk(str(path))
             except Exception as e:
                 raise RuntimeError(f"Error while loading dataset from {path}") from e
 
