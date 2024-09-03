@@ -77,7 +77,6 @@ SPLIT: "train"
 FORMAT_STRING: # format string for multicolumned datasets
 
 ```
-for details on dataset arguments checkout [nyun-docs/dataset](https://nyunai.github.io/nyun-docs/dataset/)
 
 - ***Model***
 
@@ -86,7 +85,8 @@ MODEL: Llama-3
 MODEL: "meta-llama/Meta-Llama-3-8B"  # hf repo id's
 CUSTOM_MODEL_PATH: ""
 ```
-for details on model arguments checkout [nyun-docs/models](https://nyunai.github.io/nyun-docs/model)
+
+for details on dataset and model configurations checkout [nyuntam-docs/nyuntam_text_generation](https://nyunai.github.io/nyuntam-docs/nyuntam_text_generation/)
 
 ### Run command
 ```sh
@@ -94,3 +94,71 @@ python main.py --yaml_path {path/to/recipe}
 ```
 
 This command runs the main file with the configuration setup in the recipe.
+
+
+## Acknowledgments and Citations
+
+This repository utilizes various state-of-the-art methods and algorithms developed by the research community. We acknowledge the following works that have contributed to the development and performance of the Nyuntam Text Generation module:
+
+- [**Extreme Compression of Large Language Models via Additive Quantization**](https://arxiv.org/abs/2401.06118)  
+  *Vage Egiazarian, Andrei Panferov, Denis Kuznedelev, Elias Frantar, Artem Babenko, Dan Alistarh.* arXiv preprint, 2024.
+  ```bibtex
+  @misc{egiazarian2024extreme,
+      title={Extreme Compression of Large Language Models via Additive Quantization},
+      author={Vage Egiazarian and Andrei Panferov and Denis Kuznedelev and Elias Frantar and Artem Babenko and Dan Alistarh},
+      year={2024},
+      eprint={2401.06118},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+  }
+  ```
+- [**PV-Tuning: Beyond Straight-Through Estimation for Extreme LLM Compression**](https://arxiv.org/abs/2405.14852)  
+  *Vladimir Malinovskii, Denis Mazur, Ivan Ilin, Denis Kuznedelev, Konstantin Burlachenko, Kai Yi, Dan Alistarh, Peter Richtarik.* arXiv preprint, 2024.
+  ```bibtex
+  @misc{malinovskii2024pvtuning,
+      title={PV-Tuning: Beyond Straight-Through Estimation for Extreme LLM Compression},
+      author={Vladimir Malinovskii and Denis Mazur and Ivan Ilin and Denis Kuznedelev and Konstantin Burlachenko and Kai Yi and Dan Alistarh and Peter Richtarik},
+      year={2024},
+      eprint={2405.14852},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+  }
+  ```
+
+- [**QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving**](https://arxiv.org/abs/2405.04532)  
+  *Yujun Lin, Haotian Tang, Shang Yang, Zhekai Zhang, Guangxuan Xiao, Chuang Gan, Song Han.* arXiv preprint, 2024.
+  ```bibtex
+  @article{lin2024qserve,
+      title={QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving},
+      author={Lin*, Yujun and Tang*, Haotian and Yang*, Shang and Zhang, Zhekai and Xiao, Guangxuan and Gan, Chuang and Han, Song},
+      journal={arXiv preprint arXiv:2405.04532},
+      year={2024}
+  }
+  ```
+
+- [**Fluctuation-based Adaptive Structured Pruning for Large Language Models**](https://arxiv.org/abs/2312.11983)  
+  *Yongqi An, Xu Zhao, Tao Yu, Ming Tang, Jinqiao Wang.* arXiv preprint, 2023.
+  ```bibtex
+  @misc{an2023fluctuationbased,
+      title={Fluctuation-based Adaptive Structured Pruning for Large Language Models},
+      author={Yongqi An and Xu Zhao and Tao Yu and Ming Tang and Jinqiao Wang},
+      year={2023},
+      eprint={2312.11983},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+  }
+  ```
+
+- [**AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration**](https://arxiv.org/abs/2306.00978)  
+  *Ji Lin, Jiaming Tang, Haotian Tang, Shang Yang, Xingyu Dang, Song Han.* arXiv, 2023.
+  ```
+  @article{lin2023awq,
+      title={AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration},
+      author={Lin, Ji and Tang, Jiaming and Tang, Haotian and Yang, Shang and Dang, Xingyu and Han, Song},
+      journal={arXiv},
+      year={2023}
+  }
+  ```
+
+- [**TensorRT-LLM**](https://github.com/NVIDIA/TensorRT-LLM)  
+  *NVIDIA.*
