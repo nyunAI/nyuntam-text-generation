@@ -11,6 +11,7 @@ from nyuntam.utils.dtype import get_dtype_from_string
 from nyuntam.algorithm import TextGenerationAlgorithm
 
 
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -30,6 +31,8 @@ class Factory(BaseFactory):
         super().__init__(args)
 
         # paths
+        if args.get("TRUST_REMOTE_CODE", False):
+            os.environ["HUGGINGFACE_TRUST_REMOTE_CODE"] = "True"
         cache_path = args.get(FactoryArgumentKeys.CACHE_PATH, None)
         output_path = args.get(FactoryArgumentKeys.MODEL_PATH, None)
         logs_path = args.get(FactoryArgumentKeys.LOGGING_PATH, None)
@@ -55,11 +58,13 @@ class Factory(BaseFactory):
         dataset: Dataset = None
         split: str = args.get(FactoryArgumentKeys.SPLIT, "train")
         text_column: str = args.get(FactoryArgumentKeys.TEXT_COLUMN, "text")
+        image_column: str = args.get("IMAGE_COLUMN", None)
         format_string: str = args.get(FactoryArgumentKeys.FORMAT_STRING, None)
         dataset_name: Optional[str] = args.get(FactoryArgumentKeys.DATASET_NAME, None)
         dataset_subname: Optional[str] = args.get(
             FactoryArgumentKeys.DATASET_SUBNAME, None
         )
+        is_vlm_dataset: Optional[bool] = args.get("VLM_DATASET", False)
 
         # custom paths
         dataset_path: Optional[str] = args.get(FactoryArgumentKeys.DATA_PATH, None)
@@ -99,6 +104,8 @@ class Factory(BaseFactory):
             format_string=format_string,
             text_column=text_column,
             split=split,
+            is_vlm_dataset=is_vlm_dataset,
+            image_column=image_column,
         )
 
         job = LMJob(

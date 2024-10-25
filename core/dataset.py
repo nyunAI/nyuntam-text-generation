@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datasets import load_dataset, DatasetDict, load_from_disk
 from pathlib import Path
 from typing import List, Optional, Union
@@ -31,6 +31,12 @@ class Dataset:
     format_string: Optional[str] = field(
         default=None, metadata={"help": "Format of the dataset."}
     )
+    is_vlm_dataset: Optional[bool] = field(
+        default=False, metadata={"help": "Whether the dataset is a VLM dataset."}
+    )
+    image_column: Optional[str] = field(
+        default=None, metadata={"help": "Name of the image column."}
+    )
 
     new_text_column = "text"
 
@@ -54,6 +60,7 @@ class Dataset:
         split: str = "train",
         format_string: Optional[str] = None,
         text_column: str = "text",
+        **kwargs,
     ):
         if (
             (dataset_path is None)
@@ -100,6 +107,7 @@ class Dataset:
             text_column=cls.new_text_column,
             split=split,
             format_string=format_string,
+            **kwargs,
         )
 
     @classmethod
@@ -175,6 +183,7 @@ class Dataset:
 
         json_path = dir / "dataset.json"
         data = {
+            **asdict(self),
             "dataset_name_or_path": str(self.dataset_name_or_path.absolute()),
             "dataset_subset": self.dataset_subset,
             "text_column": self.text_column,

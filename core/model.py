@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from collections import OrderedDict
 import torch
 import gc
+import os
 from typing import Optional
 from math import floor
 
@@ -26,6 +27,29 @@ class NamedModelLoadError(RuntimeError):
     """Exception for named model loading errors."""
 
     pass
+
+
+def wrap_with_trust_remote_code(func):
+    """Wrap the function with trust remote code."""
+
+    def wrapper(*args, **kwargs):
+        if eval(os.environ.get("HUGGINGFACE_TRUST_REMOTE_CODE", "False")):
+            logger.info("Trusting remote code.")
+
+        kwargs["trust_remote_code"] = eval(
+            os.environ.get("HUGGINGFACE_TRUST_REMOTE_CODE", "False")
+        )
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+AutoModelForCausalLM.from_pretrained = wrap_with_trust_remote_code(
+    AutoModelForCausalLM.from_pretrained
+)
+AutoTokenizer.from_pretrained = wrap_with_trust_remote_code(
+    AutoTokenizer.from_pretrained
+)
 
 
 # =========== Language Model ===========
