@@ -1,6 +1,5 @@
 import torch.distributed
 
-
 def get_rank():
     if torch.cuda.is_available() and torch.distributed.is_available():
         if not torch.distributed.is_initialized():
