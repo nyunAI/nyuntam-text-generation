@@ -23,6 +23,11 @@ def _import_AQLM() -> TextGenerationAlgorithm:
 
     return AQLM
 
+def _import_llamacpp() -> TextGenerationAlgorithm:
+    from .quantization.llama_cpp import LlamaModelConverter
+
+    return LlamaModelConverter
+
 
 # ===================================
 #               pruning
@@ -65,6 +70,9 @@ def __getattr__(name: str) -> TextGenerationAlgorithm:
     # engine
     elif name == "TensorRTLLM":
         return _import_TensorRTLLM()
+    
+    elif name == "LlamaCpp":
+        return _import_llamacpp
 
     else:
         raise AttributeError(f"Unsupported algorithm: {name}")
